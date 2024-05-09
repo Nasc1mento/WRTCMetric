@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sender</title>
+</head>
+<body>
+    <div>
+        <button id="start">Start</button>
+        <button id="stop">Stop</button>
+    </div>
+    <video id="video" autoplay></video>
+    <script>
+        const wss = new WebSocket("wss://192.168.0.111:50000");
+        
+        const startBtn = document.getElementById("start");
+        const stopBtn = document.getElementById("stop");
+        const video = document.getElementById("video");
+        let stream = null;
+        let peerConnection = null;
+
+        const start = async () => {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true});
+            video.srcObject = stream;
+        };
+
+        wss.onmessage = async (event) => {
+            console.log(event);
+            const message = JSON.parse(event.data);
+            console.log(message);
+            switch (message.type) {
+                case "offer":
+                    peerConnection = new RTCPeerConnection();
+                    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+                    
+                    peerConnection.onicecandidate = event => {
+                        if (event.candidate) {
+                            wss.send(JSON.stringify({ type: "candidate", candidate: event.candidate }));
+                        }
+                    }
+
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+                    const answer = await peerConnection.createAnswer();
+                    await peerConnection.setLocalDescription(answer);
+                    wss.send(JSON.stringify({ type: "answer", answer: answer }));
+                    break;
+
+                case "candidate":
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        const stop = () => {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+            video.srcObject = null;
+            peerConnection.close();
+        };
+
+        startBtn.onclick = async () => {
+           await start();
+        };
+
+        stopBtn.onclick = () => {
+            stop();
+        };  
+    </script>
+</body>
+</html>
