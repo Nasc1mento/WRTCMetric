@@ -1,6 +1,7 @@
 const wss = new WebSocket("wss://192.168.0.111:50000");
 
 const startBtn = document.getElementById("start");
+const btn = document.getElementById("btn");
 const bitrateText = document.getElementById("bitrate");
 const headerRateText = document.getElementById("headerrate");
 const ppsText = document.getElementById("pps");
@@ -52,7 +53,16 @@ startBtn.onclick = () => {
     start();
 }
 
-window.setInterval(()=> {
+btn.onclick = () => {
+    if (!window.RTCPeerConnection) {
+        console.log("Your browser does not support RTCPeerConnection");
+    }
+}
+
+
+
+
+window.setInterval(async () => {
 
     if (!peerConnection) {
         return;
@@ -65,39 +75,34 @@ window.setInterval(()=> {
     }
 
     receiver.getStats().then(res => {res.forEach(report => {
-        let bytes;
-        let packets;
-        let headerBytes;
 
-        const now = report.timestamp;
-        bytes =  report.bytesReceived;
-        headerBytes = report.headerBytesReceived;
-        packets = report.packetsReceived;
+        if (report.type === "inbound-rtp") {
+            const now = report.timestamp;
+            const bytes =  report.bytesReceived;
+            const headerBytes = report.headerBytesReceived;
+            const packets = report.packetsReceived;
 
-        if (lastResult && lastResult.has(report.id)) {
-            const bitrate = 8 * (bytes - lastResult.get(report.id).bytesReceived) / 
-                (now - lastResult.get(report.id).timestamp);
+            console.log(res.packetLost)
 
-            const headerRate = 8 * (headerBytes - lastResult.get(report.id).headerBytesReceived) /
-                (now - lastResult.get(report.id).timestamp);
-            
-            const packetsPerSecond = packets - lastResult.get(report.id).packetsReceived;
-
-            if (bitrate) {
+            if (lastResult && lastResult.has(report.id)) {
+                const lastReport = lastResult.get(report.id);
+    
+                const lastNow = lastReport.timestamp;
+                const lastBytes = lastReport.bytesReceived;
+                const lastPackets = lastReport.packetsReceived;
+                const lastHeaderBytes = lastReport.headerBytesReceived;
+    
+                console.log(bytes- lastBytes);
+                const bitrate = 8 * (bytes - lastBytes) / (now - lastNow);
+                const headerRate = 8 * (headerBytes - lastHeaderBytes) / (now - lastNow);
+                const packetsPerSecond = packets - lastPackets;
+                    
                 bitrateText.innerText = `${bitrate.toFixed(2)} kbps`;
-            }
-
-            if (headerRate) {
                 headerRateText.innerText = `${headerRate.toFixed(2)} kbps`;
-            }
-
-            if (packetsPerSecond) {
                 ppsText.innerText = `${packetsPerSecond}`;
             }
         }
-
     lastResult = res;         
     });
     });
-
 }, 1000);

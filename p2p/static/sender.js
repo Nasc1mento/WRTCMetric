@@ -10,6 +10,7 @@ const packetsLostText = document.getElementById("packetslost");
 
 let stream = null;
 let peerConnection = null;
+let lastResult;
 
 const start = async () => {
     stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false});
@@ -66,51 +67,53 @@ window.setInterval(()=> {
         return;
     }
 
-    const receiver = peerConnection.getReceivers()[0];
+    const receiver = peerConnection.getSenders()[0];
 
     if (!receiver) {
         return;
     }
 
     receiver.getStats().then(res => {res.forEach(report => {
-        let bytes;
-        let packets;
-        let headerBytes;
+        
+    const packetsLost = res.packetsLost;
+    console.log(packetsLost);
+  
 
-        const now = report.timestamp;
-        bytes =  report.bytesSent;
-        headerBytes = report.headerBytesSent;
-        packets = report.packetsSent;
+        if (report.type === "outbound-rtp") {
 
-        if (lastResult && lastResult.has(report.id)) {
-            const bitrate = 8 * (bytes - lastResult.get(report.id).bytesSent) / 
-                (now - lastResult.get(report.id).timestamp);
-            const headerRate = 8 * (headerBytes - lastResult.get(report.id).headerBytesSent) /
-                (now - lastResult.get(report.id).timestamp);
+            const now = report.timestamp;
+            const bytes = report.bytesSent;
+            const headerBytes = report.headerBytesSent;
+            const packets = report.packetsSent;
+            console.log(report.pliCount);
+            console.log(report.slCount);
+            
+            if (lastResult && lastResult.has(report.id)) {
+                const lastReport = lastResult.get(report.id);
+                const lastNow = lastReport.timestamp;
+                const lastBytes = lastReport.bytesSent;
+                const lastPackets = lastReport.packetsSent;
+                const lastHeaderBytes = lastReport.headerBytesSent;
+                const lastpacketsLost = lastReport.packetsLost;
 
-            if (bitrate) {
-                bitrateText.innerText = `${bitrate.toFixed(2)} kbps`;
-            }
-
-            if (headerRate) {
-                headerRateText.innerText = `${headerRate.toFixed(1)} kbps`;
-            }
-
-            const packetsPerSecond = packets - lastResult.get(report.id).packetsReceived;
-
-            if (packetsPerSecond) {
+                const bitrate = 8 * (bytes - lastBytes) / (now - lastNow);
+                const headerRate = 8 * (headerBytes - lastHeaderBytes) / (now - lastNow);
+                const packetsPerSecond = packets - lastPackets;
+                const packetsLostRate = packetsLost - lastpacketsLost;
+                    
+                bitrateText.textContent = `${bitrate.toFixed(2)} kbps`;
+                headerRateText.innerText = `${headerRate.toFixed(2)} kbps`;
                 ppsText.innerText = `${packetsPerSecond}`;
-            }
-
-            const packetsLost = report.packetsLost - lastResult.get(report.id).packetsLost;
-
-            if (packetsLost) {
-                packetsLostText.innerText = `${packetsLost}`;
+                packetsLostText.innerText = `${packetsLostRate}`;
+                
             }
         }
 
-    lastResult = res;         
+        
+
+        lastResult = res;         
     });
     });
 
 }, 1000);
+
