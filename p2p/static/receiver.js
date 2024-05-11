@@ -16,7 +16,7 @@ let lastResult;
 const start = async () => {
     peerConnection = new RTCPeerConnection();
     peerConnection.addTransceiver("video", { direction: "recvonly" });
-    peerConnection.addTransceiver("audio", { direction: "recvonly" });
+    // peerConnection.addTransceiver("audio", { direction: "recvonly" });
 
     peerConnection.onicecandidate = event => {
         if (event.candidate) {

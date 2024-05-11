@@ -13,7 +13,7 @@ let peerConnection = null;
 let lastResult;
 
 const start = async () => {
-    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false});
+    stream = await navigator.mediaDevices.getUserMedia({ video: true});
     video.srcObject = stream;
 };
 
