@@ -85,8 +85,6 @@ window.setInterval(()=> {
             const bytes = report.bytesSent;
             const headerBytes = report.headerBytesSent;
             const packets = report.packetsSent;
-            console.log(report.pliCount);
-            console.log(report.slCount);
             
             if (lastResult && lastResult.has(report.id)) {
                 const lastReport = lastResult.get(report.id);
@@ -94,23 +92,16 @@ window.setInterval(()=> {
                 const lastBytes = lastReport.bytesSent;
                 const lastPackets = lastReport.packetsSent;
                 const lastHeaderBytes = lastReport.headerBytesSent;
-                const lastpacketsLost = lastReport.packetsLost;
 
-                const bitrate = 8 * (bytes - lastBytes) / (now - lastNow);
-                const headerRate = 8 * (headerBytes - lastHeaderBytes) / (now - lastNow);
+                const bitrate =(bytes - lastBytes) / (now - lastNow);
+                const headerRate = (headerBytes - lastHeaderBytes) / (now - lastNow);
                 const packetsPerSecond = packets - lastPackets;
-                const packetsLostRate = packetsLost - lastpacketsLost;
                     
-                bitrateText.textContent = `${bitrate.toFixed(2)} kbps`;
-                headerRateText.innerText = `${headerRate.toFixed(2)} kbps`;
+                bitrateText.textContent = `${bitrate.toFixed(2)} Bps`;
+                headerRateText.innerText = `${headerRate.toFixed(2)} Bps`;
                 ppsText.innerText = `${packetsPerSecond}`;
-                packetsLostText.innerText = `${packetsLostRate}`;
-                
             }
         }
-
-        
-
         lastResult = res;         
     });
     });

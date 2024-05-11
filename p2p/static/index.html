@@ -6,16 +6,15 @@
     <title>Sender</title>
 </head>
 <body>
+    <video id="video" autoplay></video>
     <div>
         <button id="start">Start</button>
         <button id="stop">Stop</button>
     </div>
-    <video id="video" autoplay></video>
     <div>
-        <p>Bitrate: <p id="bitrate"></p></p>
-        <p>Header Rate: <p id="headerrate"></p></p>
-        <p>Packets per second: <p id="pps"></p></p>
-        <p>Packets Lost: <p id="packetslost"></p></p>
+        <p>Bitrate: <span  id="bitrate"></span></p>
+        <p>Header Rate: <span id="headerrate"></span></p>
+        <p>Packets per second: <span id="pps"></span></p>
     </div>
 
     <script src="sender.js"></script>

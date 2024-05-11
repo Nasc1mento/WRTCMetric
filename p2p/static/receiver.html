@@ -5,14 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receiver</title>
 </head>
-<body>
-    <button id= "start">Start</button>
-    <button id="btn">aaa</button>
+<body> 
     <video id = "video" autoplay></video>
     <div>
-        <p>Bitrate: <p id="bitrate"></p></p>
-        <p>Header Rate: <p id="headerrate"></p></p>
-        <p>Packets per second: <p id="pps"></p></p>
+        <button id= "start">Start</button>
+    </div>
+    <div id="metric">
+        <p>Bitrate: <span id="bitrate"></span></p>
+        <p>Header Rate: <span id="headerrate"></span></p>
+        <p>Packets Rate: <span id="pps"></span></p>
+        <p>Packets Lost: <span id="packetslost"></span></p>
+        <p>Packet Loss Total: <span id="packagelosttotal"></span></p>
     </div>
     <script src="receiver.js"></script>
     <link rel="stylesheet" href="style.css">

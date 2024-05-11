@@ -1,10 +1,12 @@
 const wss = new WebSocket("wss://192.168.0.111:50000");
 
 const startBtn = document.getElementById("start");
-const btn = document.getElementById("btn");
+
 const bitrateText = document.getElementById("bitrate");
 const headerRateText = document.getElementById("headerrate");
 const ppsText = document.getElementById("pps");
+const packetsLostPerSecondText = document.getElementById("packetslost");
+const packageLostTotalText = document.getElementById("packagelosttotal");
 
 
 let peerConnection = null;
@@ -53,11 +55,6 @@ startBtn.onclick = () => {
     start();
 }
 
-btn.onclick = () => {
-    if (!window.RTCPeerConnection) {
-        console.log("Your browser does not support RTCPeerConnection");
-    }
-}
 
 
 
@@ -81,8 +78,7 @@ window.setInterval(async () => {
             const bytes =  report.bytesReceived;
             const headerBytes = report.headerBytesReceived;
             const packets = report.packetsReceived;
-
-            console.log(res.packetLost)
+            const packetsLost = report.packetsLost;
 
             if (lastResult && lastResult.has(report.id)) {
                 const lastReport = lastResult.get(report.id);
@@ -91,15 +87,19 @@ window.setInterval(async () => {
                 const lastBytes = lastReport.bytesReceived;
                 const lastPackets = lastReport.packetsReceived;
                 const lastHeaderBytes = lastReport.headerBytesReceived;
+                const lastPacketsLost = lastReport.packetsLost;
     
                 console.log(bytes- lastBytes);
-                const bitrate = 8 * (bytes - lastBytes) / (now - lastNow);
-                const headerRate = 8 * (headerBytes - lastHeaderBytes) / (now - lastNow);
+                const bitrate = (bytes - lastBytes) / (now - lastNow);
+                const headerRate = (headerBytes - lastHeaderBytes) / (now - lastNow);
                 const packetsPerSecond = packets - lastPackets;
+                const packetsLostPerSecond = packetsLost - lastPacketsLost;
                     
-                bitrateText.innerText = `${bitrate.toFixed(2)} kbps`;
-                headerRateText.innerText = `${headerRate.toFixed(2)} kbps`;
+                bitrateText.innerText = `${bitrate.toFixed(2)} Bps`;
+                headerRateText.innerText = `${headerRate.toFixed(2)} Bps`;
                 ppsText.innerText = `${packetsPerSecond}`;
+                packetsLostPerSecondText.innerText = `${packetsLostPerSecond}`;
+                packageLostTotalText.innerText = `${packetsLost}`;
             }
         }
     lastResult = res;         
