@@ -1,19 +1,19 @@
+"use "
+
+
 const wss = new WebSocket("wss://192.168.0.111:50000");
         
 const startBtn = document.getElementById("start");
 const stopBtn = document.getElementById("stop");
 const video = document.getElementById("video");
-const bitrateText = document.getElementById("bitrate");
-const headerRateText = document.getElementById("headerrate");
-const ppsText = document.getElementById("pps");
-const packetsLostText = document.getElementById("packetslost");
+
 
 let stream = null;
 let peerConnection = null;
 let lastResult;
 
 const start = async () => {
-    stream = await navigator.mediaDevices.getUserMedia({ video: true});
+    stream = await navigator.mediaDevices.getUserMedia({ "video": true});
     video.srcObject = stream;
 };
 
@@ -75,17 +75,15 @@ window.setInterval(()=> {
 
     receiver.getStats().then(res => {res.forEach(report => {
         
-    const packetsLost = res.packetsLost;
-    console.log(packetsLost);
-  
-
         if (report.type === "outbound-rtp") {
-
             const now = report.timestamp;
             const bytes = report.bytesSent;
             const headerBytes = report.headerBytesSent;
             const packets = report.packetsSent;
+            const nackCount = report.nackCount;
+            const pliCount = report.pliCount;
             
+
             if (lastResult && lastResult.has(report.id)) {
                 const lastReport = lastResult.get(report.id);
                 const lastNow = lastReport.timestamp;
@@ -93,13 +91,16 @@ window.setInterval(()=> {
                 const lastPackets = lastReport.packetsSent;
                 const lastHeaderBytes = lastReport.headerBytesSent;
 
-                const bitrate =(bytes - lastBytes) / (now - lastNow);
-                const headerRate = (headerBytes - lastHeaderBytes) / (now - lastNow);
-                const packetsPerSecond = packets - lastPackets;
-                    
-                bitrateText.textContent = `${bitrate.toFixed(2)} Bps`;
-                headerRateText.innerText = `${headerRate.toFixed(2)} Bps`;
-                ppsText.innerText = `${packetsPerSecond}`;
+                const data = {
+                    bytesRate: ((bytes - lastBytes) / (now - lastNow)).toFixed(2),
+                    headerRate: ((headerBytes - lastHeaderBytes) / (now - lastNow)).toFixed(2),
+                    packets: packets,  
+                    packetsPerSecond: packets - lastPackets, 
+                    nackCount: nackCount,
+                    pliCount: pliCount,
+                }
+
+                showJson(data, "json");
             }
         }
         lastResult = res;         
