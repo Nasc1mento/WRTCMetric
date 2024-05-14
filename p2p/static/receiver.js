@@ -2,15 +2,18 @@
 
 const wss = new WebSocket("wss://192.168.0.111:50000");
 const startBtn = document.getElementById("start");
+const video = document.getElementById("video");
 
-
+// how 
 
 let peerConnection = null;
+let dataChannel = null;
 let lastResult;
 
 
 const start = async () => {
     peerConnection = new RTCPeerConnection();
+
     peerConnection.addTransceiver("video", { direction: "recvonly" });
     // peerConnection.addTransceiver("audio", { direction: "recvonly" });
 
@@ -51,12 +54,11 @@ startBtn.onclick = () => {
     start();
 }
 
-
 window.setInterval(async () => {
 
     if (!peerConnection) {
         return;
-    }
+    }   
 
     const receiver = peerConnection.getReceivers()[0];
 
@@ -67,6 +69,7 @@ window.setInterval(async () => {
     receiver.getStats().then(res => {res.forEach(report => {
 
         if (report.type === "inbound-rtp") {
+
             const now = report.timestamp;
 
             const bytes =  report.bytesReceived;
@@ -90,10 +93,11 @@ window.setInterval(async () => {
                     packetsLost: packetsLost,
                 }
 
-                showJson(data, "json");
+                showJson(data, "stats");
             }
         }
-    lastResult = res;         
+        
     });
+    lastResult = res; 
     });
 }, 1000);

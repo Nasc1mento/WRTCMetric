@@ -10,7 +10,15 @@ const video = document.getElementById("video");
 
 let stream = null;
 let peerConnection = null;
+let dataChannel = null;
 let lastResult;
+
+
+let tR1;
+let now1;
+let tSV1;
+let tS1;
+let msg;
 
 const start = async () => {
     stream = await navigator.mediaDevices.getUserMedia({ "video": true});
@@ -46,6 +54,8 @@ wss.onmessage = async (event) => {
     }
 };
 
+
+
 const stop = () => {
     stream.getTracks().forEach(track => track.stop());
     stream = null;
@@ -61,21 +71,28 @@ stopBtn.onclick = () => {
     stop();
 };
 
+
+
 window.setInterval(()=> {
 
     if (!peerConnection) {
         return;
     }
 
+
     const receiver = peerConnection.getSenders()[0];
+
 
     if (!receiver) {
         return;
     }
 
     receiver.getStats().then(res => {res.forEach(report => {
+        // console.log(report);
         
         if (report.type === "outbound-rtp") {
+
+
             const now = report.timestamp;
             const bytes = report.bytesSent;
             const headerBytes = report.headerBytesSent;
@@ -92,6 +109,7 @@ window.setInterval(()=> {
                 const lastHeaderBytes = lastReport.headerBytesSent;
 
                 const data = {
+                    ahahah: report.lastPacketReceivedTimestamp,
                     bytesRate: ((bytes - lastBytes) / (now - lastNow)).toFixed(2),
                     headerRate: ((headerBytes - lastHeaderBytes) / (now - lastNow)).toFixed(2),
                     packets: packets,  
@@ -102,10 +120,10 @@ window.setInterval(()=> {
 
                 showJson(data, "json");
             }
-        }
-        lastResult = res;         
-    });
-    });
 
+        }      
+    });
+    lastResult = res;   
+    }); 
 }, 1000);
 
